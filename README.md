@@ -11,6 +11,7 @@ A lean, durable, and free community events calendar powered by GitHub and Next.j
 
 ## Tech Stack
 
+- **Runtime**: Bun
 - **Frontend**: Next.js with static export
 - **Content**: Markdown files with YAML frontmatter
 - **Backend**: GitHub (Issues + Actions + PRs)
@@ -20,13 +21,13 @@ A lean, durable, and free community events calendar powered by GitHub and Next.j
 
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Run development server
-npm run dev
+bun dev
 
 # Build for production
-npm run build
+bun run build
 ```
 
 ## Project Structure
@@ -67,7 +68,7 @@ Edit `content/config/trusted-submitters.json` to add GitHub usernames that shoul
 ### Cloudflare Pages (Recommended)
 
 1. Connect your GitHub repo to Cloudflare Pages
-2. Set build command: `npm run build`
+2. Set build command: `bun run build`
 3. Set output directory: `out`
 4. Deploy!
 
