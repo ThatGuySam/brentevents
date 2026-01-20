@@ -79,7 +79,8 @@ jobs:
             const escapeYaml = (str) => str.replace(/"/g, '\\"');
 
             // Generate markdown content
-            const frontmatter = `---
+            const sep = '---';
+            const frontmatter = `${sep}
 title: "${escapeYaml(event.title)}"
 date: ${event.date}
 time: "${escapeYaml(event.time)}"
@@ -92,7 +93,7 @@ url: "${event.url}"
 submitted_by: "${event.submitted_by}"
 submitted_at: ${event.submitted_at}
 approved: false
----
+${sep}
 
 ${event.description}
 `;
