@@ -80,23 +80,24 @@ jobs:
 
             // Generate markdown content
             const sep = '---';
-            const frontmatter = `${sep}
-title: "${escapeYaml(event.title)}"
-date: ${event.date}
-time: "${escapeYaml(event.time)}"
-location: "${escapeYaml(event.location)}"
-address: "${escapeYaml(event.address)}"
-category: "${event.category}"
-organizer: "${escapeYaml(event.organizer)}"
-contact_email: "${event.contact_email}"
-url: "${event.url}"
-submitted_by: "${event.submitted_by}"
-submitted_at: ${event.submitted_at}
-approved: false
-${sep}
-
-${event.description}
-`;
+            const frontmatter = [
+              sep,
+              `title: "${escapeYaml(event.title)}"`,
+              `date: ${event.date}`,
+              `time: "${escapeYaml(event.time)}"`,
+              `location: "${escapeYaml(event.location)}"`,
+              `address: "${escapeYaml(event.address)}"`,
+              `category: "${event.category}"`,
+              `organizer: "${escapeYaml(event.organizer)}"`,
+              `contact_email: "${event.contact_email}"`,
+              `url: "${event.url}"`,
+              `submitted_by: "${event.submitted_by}"`,
+              `submitted_at: ${event.submitted_at}`,
+              `approved: false`,
+              sep,
+              '',
+              event.description
+            ].join('\n');
 
             // Store outputs
             core.setOutput('filename', filename);
