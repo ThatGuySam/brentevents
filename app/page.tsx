@@ -23,7 +23,7 @@ export default function HomePage() {
           <div className="text-center py-12 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
             <p className="text-gray-500 mb-4">No upcoming events yet.</p>
             <a
-              href="https://github.com/brentom/brentevents/issues/new?template=event-submission.yml"
+              href="https://github.com/ThatGuySam/brentevents/issues/new?template=event-submission.yml"
               className="text-blue-600 hover:underline"
             >
               Be the first to submit an event →

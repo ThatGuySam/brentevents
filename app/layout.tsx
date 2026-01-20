@@ -35,7 +35,7 @@ export default function RootLayout({
             <p>
               Want to add an event?{' '}
               <a
-                href="https://github.com/brentom/brentevents/issues/new?template=event-submission.yml"
+                href="https://github.com/ThatGuySam/brentevents/issues/new?template=event-submission.yml"
                 className="text-blue-600 hover:underline"
               >
                 Submit via GitHub
