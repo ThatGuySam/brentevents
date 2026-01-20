@@ -1,0 +1,8 @@
+{
+  "trusted_github_users": [
+    "brentom"
+  ],
+  "trusted_email_domains": [],
+  "auto_approve_categories": [],
+  "notes": "Add GitHub usernames to trusted_github_users for auto-approval. Add email domains (without @) to trusted_email_domains. Add category slugs to auto_approve_categories."
+}

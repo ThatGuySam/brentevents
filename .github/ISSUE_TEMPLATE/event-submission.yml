@@ -1,0 +1,93 @@
+name: Submit an Event
+description: Submit a community event to the calendar
+title: "[EVENT] "
+labels: ["event-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for submitting an event! Please fill out the details below.
+        Your event will be reviewed and added to the calendar.
+
+  - type: input
+    id: event-title
+    attributes:
+      label: Event Title
+      placeholder: "Tulsa Tech Meetup"
+    validations:
+      required: true
+
+  - type: input
+    id: event-date
+    attributes:
+      label: Event Date
+      description: "Format: YYYY-MM-DD"
+      placeholder: "2026-02-15"
+    validations:
+      required: true
+
+  - type: input
+    id: event-time
+    attributes:
+      label: Event Time
+      placeholder: "6:30 PM - 8:30 PM"
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Venue/Location Name
+      placeholder: "36 Degrees North"
+    validations:
+      required: true
+
+  - type: input
+    id: address
+    attributes:
+      label: Address
+      placeholder: "36 N Greenwood Ave, Tulsa, OK"
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Tech
+        - Arts & Culture
+        - Music
+        - Food & Drink
+        - Sports & Fitness
+        - Community
+        - Business & Networking
+        - Education
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Event Description
+      description: "Markdown formatting is supported"
+      placeholder: "Tell us about your event..."
+    validations:
+      required: true
+
+  - type: input
+    id: event-url
+    attributes:
+      label: Event URL/Registration Link
+      placeholder: "https://..."
+
+  - type: input
+    id: contact-email
+    attributes:
+      label: Contact Email
+      placeholder: "events@example.com"
+
+  - type: input
+    id: organizer
+    attributes:
+      label: Organizer/Host Name
+      placeholder: "Tulsa Developers"

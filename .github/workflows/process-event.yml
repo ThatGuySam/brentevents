@@ -1,0 +1,191 @@
+name: Process Event Submission
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  process-event:
+    if: contains(github.event.issue.labels.*.name, 'event-submission')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse Issue and Create Event File
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body;
+
+            // Parse form fields from issue body (GitHub Issue Forms create structured markdown)
+            const parseField = (label) => {
+              const regex = new RegExp(`### ${label}\\s*\\n\\s*([\\s\\S]*?)(?=\\n###|$)`, 'i');
+              const match = body.match(regex);
+              if (!match) return '';
+              return match[1].trim().split('\n')[0].trim();
+            };
+
+            const parseTextarea = (label) => {
+              const regex = new RegExp(`### ${label}\\s*\\n\\s*([\\s\\S]*?)(?=\\n###|$)`, 'i');
+              const match = body.match(regex);
+              if (!match) return '';
+              return match[1].trim();
+            };
+
+            const event = {
+              title: parseField('Event Title'),
+              date: parseField('Event Date'),
+              time: parseField('Event Time'),
+              location: parseField('Venue/Location Name'),
+              address: parseField('Address'),
+              category: parseField('Category').toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-'),
+              description: parseTextarea('Event Description'),
+              url: parseField('Event URL/Registration Link'),
+              contact_email: parseField('Contact Email'),
+              organizer: parseField('Organizer/Host Name'),
+              submitted_by: issue.user.login,
+              submitted_at: new Date().toISOString().split('T')[0]
+            };
+
+            // Validate required fields
+            if (!event.title || !event.date) {
+              core.setFailed('Missing required fields: title or date');
+              return;
+            }
+
+            // Validate date format
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(event.date)) {
+              core.setFailed('Invalid date format. Expected YYYY-MM-DD');
+              return;
+            }
+
+            // Generate slug and filename
+            const slug = event.title
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/(^-|-$)/g, '');
+            const filename = `content/events/${event.date}-${slug}.md`;
+            const branch = `event/${event.date}-${slug}`;
+
+            // Escape quotes in strings for YAML
+            const escapeYaml = (str) => str.replace(/"/g, '\\"');
+
+            // Generate markdown content
+            const frontmatter = `---
+title: "${escapeYaml(event.title)}"
+date: ${event.date}
+time: "${escapeYaml(event.time)}"
+location: "${escapeYaml(event.location)}"
+address: "${escapeYaml(event.address)}"
+category: "${event.category}"
+organizer: "${escapeYaml(event.organizer)}"
+contact_email: "${event.contact_email}"
+url: "${event.url}"
+submitted_by: "${event.submitted_by}"
+submitted_at: ${event.submitted_at}
+approved: false
+---
+
+${event.description}
+`;
+
+            // Store outputs
+            core.setOutput('filename', filename);
+            core.setOutput('content', Buffer.from(frontmatter).toString('base64'));
+            core.setOutput('branch', branch);
+            core.setOutput('submitter', event.submitted_by);
+            core.setOutput('event_title', event.title);
+            core.setOutput('event_date', event.date);
+
+      - name: Create event file
+        run: |
+          echo "${{ steps.parse.outputs.content }}" | base64 -d > "${{ steps.parse.outputs.filename }}"
+
+      - name: Check if submitter is trusted
+        id: check-trust
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const submitter = '${{ steps.parse.outputs.submitter }}';
+
+            let trustedUsers = [];
+            try {
+              const config = JSON.parse(
+                fs.readFileSync('content/config/trusted-submitters.json', 'utf8')
+              );
+              trustedUsers = config.trusted_github_users || [];
+            } catch (e) {
+              console.log('No trusted submitters config found, requiring manual approval');
+            }
+
+            const isTrusted = trustedUsers.includes(submitter);
+            console.log(`Submitter ${submitter} is ${isTrusted ? 'trusted' : 'not trusted'}`);
+            core.setOutput('is_trusted', isTrusted.toString());
+
+      - name: Create Pull Request
+        id: create-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Add event: ${{ steps.parse.outputs.event_title }}"
+          branch: ${{ steps.parse.outputs.branch }}
+          delete-branch: true
+          title: "📅 New Event: ${{ steps.parse.outputs.event_title }}"
+          body: |
+            ## New Event Submission
+
+            This PR was automatically created from issue #${{ github.event.issue.number }}
+
+            **Event:** ${{ steps.parse.outputs.event_title }}
+            **Date:** ${{ steps.parse.outputs.event_date }}
+            **Submitted by:** @${{ steps.parse.outputs.submitter }}
+
+            ---
+
+            ### To approve this event:
+            1. Review the event details in the file changes
+            2. Edit if needed
+            3. Merge this PR
+
+            ### To decline:
+            Close this PR and optionally comment on issue #${{ github.event.issue.number }} with feedback.
+          labels: |
+            event
+            pending-review
+
+      - name: Auto-merge if trusted
+        if: steps.check-trust.outputs.is_trusted == 'true' && steps.create-pr.outputs.pull-request-number
+        run: |
+          gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} --auto --squash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isTrusted = '${{ steps.check-trust.outputs.is_trusted }}' === 'true';
+            const prNumber = '${{ steps.create-pr.outputs.pull-request-number }}';
+
+            let message;
+            if (isTrusted) {
+              message = `✅ Thanks for submitting this event! As a trusted contributor, your event has been automatically approved and will appear on the calendar shortly.\n\nPR: #${prNumber}`;
+            } else {
+              message = `📝 Thanks for submitting this event! It's been queued for review.\n\nA maintainer will review and approve it soon. You can track the status in PR #${prNumber}`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: message
+            });

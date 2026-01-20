@@ -1,0 +1,13 @@
+{
+  "categories": [
+    { "slug": "tech", "name": "Tech", "color": "#3B82F6" },
+    { "slug": "arts-culture", "name": "Arts & Culture", "color": "#8B5CF6" },
+    { "slug": "music", "name": "Music", "color": "#EC4899" },
+    { "slug": "food-drink", "name": "Food & Drink", "color": "#F97316" },
+    { "slug": "sports-fitness", "name": "Sports & Fitness", "color": "#22C55E" },
+    { "slug": "community", "name": "Community", "color": "#EAB308" },
+    { "slug": "business-networking", "name": "Business & Networking", "color": "#6366F1" },
+    { "slug": "education", "name": "Education", "color": "#14B8A6" },
+    { "slug": "other", "name": "Other", "color": "#64748B" }
+  ]
+}
